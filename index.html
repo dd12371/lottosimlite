@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6 aus 49 · Lotto Simulator Lite</title>
+<style>
+  :root{
+    --bg-0:#070a12;
+    --surface:rgba(255,255,255,.028);
+    --surface-2:rgba(255,255,255,.05);
+    --surface-3:rgba(255,255,255,.08);
+    --border:rgba(255,255,255,.07);
+    --border-2:rgba(255,255,255,.14);
+    --text:#f2f6ff;
+    --text-2:#9aa9c7;
+    --text-3:#5d6b87;
+    --accent:#6366f1;
+    --accent-2:#a855f7;
+    --green:#10b981;
+    --green-2:#34d399;
+    --red:#f43f5e;
+    --gold:#fbbf24;
+    --r-lg:20px;
+    --r-md:14px;
+    --r-sm:10px;
+    --mono:'SF Mono',ui-monospace,'Cascadia Code',Consolas,monospace;
+    --shadow-md:0 4px 16px -4px rgba(0,0,0,.4);
+    --shadow-lg:0 20px 40px -12px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:var(--bg-0);
+    color:var(--text);
+    min-height:100vh;
+    padding:2rem 1.5rem 4rem;
+    -webkit-font-smoothing:antialiased;
+    font-size:15px;
+    line-height:1.5;
+    background-image:
+      radial-gradient(1000px 600px at 0% 0%, rgba(99,102,241,.10), transparent 50%),
+      radial-gradient(900px 500px at 100% 0%, rgba(168,85,247,.08), transparent 50%),
+      radial-gradient(1200px 800px at 50% 100%, rgba(16,185,129,.05), transparent 60%);
+    background-attachment:fixed;
+  }
+  .wrap{max-width:1400px;margin:0 auto}
+  .main{display:flex;flex-direction:column;gap:1.5rem}
+
+  header.top{
+    display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
+    gap:1.5rem;margin-bottom:1.75rem;
+  }
+  .brand{display:flex;align-items:center;gap:1rem}
+  .brand .logo{
+    width:56px;height:56px;border-radius:16px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.5rem;font-weight:800;
+    box-shadow:0 12px 28px -8px rgba(99,102,241,.6);
+    letter-spacing:-.5px;
+  }
+  .brand h1{font-size:1.55rem;font-weight:800;letter-spacing:-.7px;line-height:1.1}
+  .brand p{color:var(--text-2);font-size:.83rem;margin-top:.2rem}
+  .header-meta{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+  .pill{
+    background:var(--surface);border:1px solid var(--border);
+    padding:.5rem 1rem;border-radius:60px;
+    font-size:.8rem;display:flex;align-items:center;gap:.55rem;
+    color:var(--text-2);backdrop-filter:blur(12px);
+  }
+  .pill strong{color:var(--text);font-weight:600}
+  .pill .dot{
+    width:7px;height:7px;border-radius:50%;background:var(--green-2);
+    box-shadow:0 0 10px var(--green-2);
+    animation:pulse 2s infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+  .panel{
+    background:linear-gradient(180deg,var(--surface),transparent);
+    border:1px solid var(--border);
+    border-radius:var(--r-lg);
+    padding:1.5rem;
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    box-shadow:var(--shadow-md);
+    transition:border-color .25s;
+  }
+  .panel:hover{border-color:var(--border-2)}
+  .panel-head{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;
+  }
+  .panel-head h2{
+    font-size:1rem;font-weight:700;letter-spacing:-.2px;
+    display:flex;align-items:center;gap:.65rem;
+  }
+  .panel-head h2 .ic{
+    width:32px;height:32px;border-radius:10px;
+    background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(168,85,247,.2));
+    color:var(--accent);
+    display:flex;align-items:center;justify-content:center;
+    font-size:.92rem;
+    border:1px solid rgba(99,102,241,.25);
+  }
+  .panel-head .sub{
+    font-size:.68rem;font-weight:700;color:var(--text-3);
+    text-transform:uppercase;letter-spacing:1px;
+  }
+
+  .hero-panel{
+    padding:1.75rem;
+    background:
+      linear-gradient(135deg,rgba(99,102,241,.10),rgba(168,85,247,.05) 60%,transparent),
+      linear-gradient(180deg,var(--surface),transparent);
+    border:1px solid rgba(99,102,241,.18);
+  }
+  .hero-grid{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.4fr);
+    gap:1.5rem;
+    align-items:center;
+  }
+  @media (max-width:900px){.hero-grid{grid-template-columns:1fr}}
+  .hero-date{display:flex;align-items:center;gap:1.1rem}
+  .hero-date .cal{
+    width:72px;height:72px;flex:0 0 72px;border-radius:18px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-weight:800;line-height:1;
+    box-shadow:0 16px 32px -10px rgba(99,102,241,.7);
+  }
+  .hero-date .cal .d{font-size:1.7rem}
+  .hero-date .cal .m{font-size:.62rem;text-transform:uppercase;letter-spacing:1.2px;opacity:.95;margin-top:3px}
+  .hero-date .info{min-width:0}
+  .hero-date .info .lbl{font-size:.68rem;color:var(--text-2);text-transform:uppercase;letter-spacing:1px;font-weight:700}
+  .hero-date .info .val{font-size:1.15rem;font-weight:700;margin-top:.2rem;letter-spacing:-.3px}
+  .hero-date .info .next{font-size:.74rem;color:var(--text-3);margin-top:.3rem}
+
+  .hero-fields{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+  @media (max-width:520px){.hero-fields{grid-template-columns:1fr}}
+  .field{display:flex;flex-direction:column;gap:.45rem}
+  .field label{
+    font-size:.68rem;color:var(--text-2);font-weight:700;
+    text-transform:uppercase;letter-spacing:.9px;
+  }
+  .field input{
+    background:rgba(0,0,0,.38);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:.8rem 1rem;border-radius:var(--r-sm);
+    font-size:.95rem;font-weight:700;
+    outline:none;transition:border-color .15s, box-shadow .15s, background .15s;
+    width:100%;
+    font-family:var(--mono);
+    -moz-appearance:textfield;
+  }
+  .field input::-webkit-outer-spin-button,
+  .field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .field input:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(99,102,241,.22);
+    background:rgba(0,0,0,.55);
+  }
+
+  .hero-action{display:flex;flex-direction:column;gap:.75rem}
+  .preview-bar{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:1rem;flex-wrap:wrap;
+    padding:.7rem 1rem;
+    background:rgba(0,0,0,.3);
+    border:1px solid var(--border);
+    border-radius:var(--r-sm);
+    font-size:.82rem;
+    color:var(--text-2);
+  }
+  .preview-bar .k{color:var(--text-3);font-size:.66rem;text-transform:uppercase;letter-spacing:.9px;font-weight:700}
+  .preview-bar .v{color:var(--text);font-weight:700;font-family:var(--mono);font-size:.88rem}
+
+  button{
+    font-family:inherit;font-weight:700;cursor:pointer;border:none;
+    border-radius:var(--r-sm);padding:.85rem 1.4rem;font-size:.9rem;
+    transition:transform .08s, filter .15s, box-shadow .2s, background .15s;
+    display:inline-flex;align-items:center;justify-content:center;gap:.55rem;
+    white-space:nowrap;letter-spacing:.1px;
+  }
+  button:active:not(:disabled){transform:scale(.98)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .btn-primary{
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    color:#fff;
+    box-shadow:0 12px 28px -10px rgba(99,102,241,.8);
+    width:100%;
+    font-size:.98rem;
+    padding:1rem 1.4rem;
+  }
+  .btn-primary:hover:not(:disabled){filter:brightness(1.12)}
+
+  .stats-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:1rem;
+  }
+  .stat{
+    background:rgba(0,0,0,.28);
+    border:1px solid var(--border);
+    border-radius:var(--r-md);padding:1.15rem 1.25rem;
+    transition:border-color .2s, background .2s;
+  }
+  .stat:hover{border-color:var(--border-2);background:rgba(0,0,0,.4)}
+  .stat .k{
+    font-size:.66rem;color:var(--text-3);
+    text-transform:uppercase;letter-spacing:1px;font-weight:700;
+  }
+  .stat .v{
+    font-size:1.6rem;font-weight:800;margin-top:.4rem;
+    letter-spacing:-.7px;
+  }
+  .stat .v.small{font-size:1.2rem}
+  .v.green{color:var(--green-2)}
+  .v.red{color:var(--red)}
+  .v.gold{color:var(--gold)}
+  .v.blue{color:#7dd3fc}
+
+  .table-wrap{
+    overflow-x:auto;border-radius:var(--r-md);
+    border:1px solid var(--border);
+    background:rgba(0,0,0,.2);
+  }
+  table{width:100%;border-collapse:collapse;font-size:.85rem;min-width:560px}
+  thead th{
+    background:rgba(0,0,0,.45);
+    color:var(--text-2);
+    font-weight:700;font-size:.66rem;text-transform:uppercase;letter-spacing:1px;
+    padding:.8rem .9rem;text-align:left;
+    position:sticky;top:0;
+    border-bottom:1px solid var(--border);
+  }
+  tbody td{padding:.75rem .9rem;border-top:1px solid var(--border)}
+  tbody tr:hover{background:rgba(255,255,255,.025)}
+  .kl{font-weight:800;white-space:nowrap;font-size:.85rem}
+  .kl-1{color:var(--gold)}
+  .kl-2{color:#d4a94d}
+  .kl-3,.kl-4{color:#7fb0ff}
+  .kl-5,.kl-6{color:#b794f6}
+  .kl-7,.kl-8{color:var(--text-2)}
+  .kl-9{color:var(--text-3)}
+  .num-mono{font-family:var(--mono);font-size:.8rem;font-weight:600}
+  .badge{
+    display:inline-block;padding:.22rem .6rem;border-radius:40px;
+    font-size:.7rem;font-weight:700;letter-spacing:.3px;
+  }
+  .badge.win{
+    background:rgba(16,185,129,.16);color:var(--green-2);
+    border:1px solid rgba(16,185,129,.3);
+  }
+  .badge.none{
+    background:var(--surface);color:var(--text-3);
+    border:1px solid var(--border);
+  }
+
+  .history-search{margin-bottom:.85rem}
+  .history-search input{
+    width:100%;
+    background:rgba(0,0,0,.38);border:1px solid var(--border);
+    color:var(--text);padding:.7rem 1rem;border-radius:var(--r-sm);
+    font-size:.85rem;font-family:inherit;outline:none;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  .history-search input:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(99,102,241,.15);
+  }
+  .history-scroll{
+    max-height:640px;overflow-y:auto;
+    border:1px solid var(--border);border-radius:var(--r-md);
+    background:rgba(0,0,0,.22);
+  }
+  .history-scroll::-webkit-scrollbar{width:10px}
+  .history-scroll::-webkit-scrollbar-track{background:transparent}
+  .history-scroll::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,.1);border-radius:10px;
+    border:2px solid transparent;background-clip:content-box;
+  }
+  .history-scroll::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.2);background-clip:content-box}
+
+  .hist-row{
+    display:grid;
+    grid-template-columns:minmax(150px,1.3fr) minmax(190px,1.6fr) minmax(120px,1fr) minmax(130px,1fr);
+    gap:1rem;align-items:center;
+    padding:.75rem 1rem;
+    border-bottom:1px solid var(--border);
+    font-size:.85rem;
+    transition:background .15s;
+  }
+  .hist-row:last-child{border-bottom:none}
+  .hist-row:hover{background:rgba(255,255,255,.03)}
+  .hist-row .date-col{display:flex;flex-direction:column;gap:.2rem}
+  .hist-row .date-col .d{color:var(--text);font-weight:600;font-size:.85rem;white-space:nowrap}
+  .hist-row .date-col .ids{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center}
+  .hist-row .date-col .idx{
+    color:var(--text-3);font-family:var(--mono);font-size:.68rem;font-weight:600;
+    background:rgba(255,255,255,.04);padding:.05rem .4rem;border-radius:4px;
+    border:1px solid var(--border);
+  }
+  .hist-row .date-col .day-idx{
+    color:#a5b4fc;font-family:var(--mono);font-size:.68rem;font-weight:600;
+    background:rgba(99,102,241,.12);padding:.05rem .4rem;border-radius:4px;
+    border:1px solid rgba(99,102,241,.25);
+  }
+  .hist-row .r{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+  .hist-row .r .r-num{
+    font-family:var(--mono);font-weight:700;font-size:.88rem;
+    color:var(--text);
+  }
+  .hist-row .r .sz-tag{
+    font-size:.66rem;font-weight:700;letter-spacing:.5px;
+    padding:.12rem .5rem;border-radius:40px;
+    background:rgba(168,85,247,.18);color:#c4b5fd;
+    border:1px solid rgba(168,85,247,.3);
+  }
+  .hist-row .r .sz-tag.miss{
+    background:rgba(255,255,255,.04);color:var(--text-3);
+    border:1px solid var(--border);
+  }
+  .hist-row .win-cell{
+    text-align:right;font-family:var(--mono);font-weight:700;font-size:.88rem;
+  }
+  .hist-row .win-cell.pos{color:var(--green-2)}
+  .hist-row .win-cell.neg{color:var(--text-3)}
+  @media (max-width:680px){
+    .hist-row{grid-template-columns:1fr;gap:.35rem;padding:.85rem}
+    .hist-row .win-cell{text-align:left}
+  }
+  .empty-state{
+    padding:3rem 1rem;text-align:center;color:var(--text-3);font-size:.85rem;
+  }
+  .history-info{
+    text-align:center;font-size:.72rem;color:var(--text-3);
+    padding:.75rem;font-family:var(--mono);
+    background:rgba(99,102,241,.06);
+    border-bottom:1px solid var(--border);
+  }
+
+  .sim-status{
+    margin-top:.85rem;font-size:.82rem;color:var(--text-2);
+    display:none;align-items:center;gap:.6rem;
+    padding:.7rem 1rem;background:rgba(99,102,241,.08);
+    border:1px solid rgba(99,102,241,.2);border-radius:var(--r-sm);
+  }
+  .sim-status.show{display:flex}
+  .spinner{
+    width:15px;height:15px;border-radius:50%;flex-shrink:0;
+    border:2px solid rgba(255,255,255,.15);border-top-color:var(--accent);
+    animation:spin .7s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .notif-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+    gap:.65rem;margin-top:.75rem;
+  }
+  .notif-item{
+    display:flex;align-items:center;gap:.65rem;
+    padding:.7rem .85rem;
+    background:rgba(0,0,0,.22);
+    border:1px solid var(--border);
+    border-radius:var(--r-sm);
+    cursor:pointer;
+    transition:all .15s;
+    font-size:.82rem;
+  }
+  .notif-item:hover{background:rgba(255,255,255,.05);border-color:var(--border-2)}
+  .notif-item input{
+    width:15px;height:15px;accent-color:var(--green-2);
+    cursor:pointer;flex-shrink:0;
+  }
+  .notif-item .kl-label{font-weight:800;flex-shrink:0;font-size:.82rem}
+  .notif-item .desc{color:var(--text-3);font-size:.7rem;margin-left:auto;font-family:var(--mono)}
+  .notif-item.kl-1 .kl-label{color:var(--gold)}
+  .notif-item.kl-2 .kl-label{color:#d4a94d}
+  .notif-item.kl-3 .kl-label,.notif-item.kl-4 .kl-label{color:#7fb0ff}
+  .notif-item.kl-5 .kl-label,.notif-item.kl-6 .kl-label{color:#b794f6}
+  .notif-item.kl-7 .kl-label,.notif-item.kl-8 .kl-label{color:var(--text-2)}
+  .notif-item.kl-9 .kl-label{color:var(--text-3)}
+
+  .toast-container{
+    position:fixed;top:1.5rem;right:1.5rem;z-index:9999;
+    display:flex;flex-direction:column;gap:.65rem;
+    max-width:400px;pointer-events:none;
+  }
+  .toast{
+    background:linear-gradient(135deg,rgba(20,28,48,.98),rgba(30,20,50,.98));
+    border:1px solid var(--border-2);
+    border-radius:var(--r-md);padding:1rem 1.15rem;
+    box-shadow:var(--shadow-lg);
+    animation:slideIn .35s cubic-bezier(.2,.9,.3,1.1);
+    backdrop-filter:blur(20px);
+    pointer-events:auto;
+  }
+  .toast.win{
+    border-color:rgba(16,185,129,.5);
+    background:linear-gradient(135deg,rgba(10,50,30,.98),rgba(8,35,22,.98));
+    box-shadow:0 20px 40px -12px rgba(16,185,129,.4), var(--shadow-lg);
+  }
+  .toast.jackpot{
+    border-color:rgba(251,191,36,.6);
+    background:linear-gradient(135deg,rgba(60,42,8,.98),rgba(40,28,5,.98));
+    box-shadow:0 20px 40px -12px rgba(251,191,36,.5), var(--shadow-lg);
+  }
+  .toast .t-title{
+    font-weight:800;font-size:.9rem;display:flex;align-items:center;gap:.55rem;
+    margin-bottom:.3rem;letter-spacing:-.2px;
+  }
+  .toast .t-body{font-size:.78rem;color:var(--text-2);line-height:1.6}
+  .toast .t-body strong{color:var(--text);font-weight:700}
+  @keyframes slideIn{
+    from{transform:translateX(110%);opacity:0}
+    to{transform:translateX(0);opacity:1}
+  }
+
+  .hint{font-size:.75rem;color:var(--text-3);line-height:1.6;margin-top:.6rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <div class="logo">49</div>
+      <div>
+        <h1>Lotto Simulator Lite</h1>
+        <p>6 aus 49 · Wahrscheinlichkeits-Generator</p>
+      </div>
+    </div>
+    <div class="header-meta">
+      <div class="pill"><span class="dot"></span> Systemzeit aktiv</div>
+      <div class="pill">Heute: <strong id="sysToday">–</strong></div>
+    </div>
+  </header>
+
+  <div class="main">
+
+    <section class="panel hero-panel">
+      <div class="panel-head">
+        <h2><span class="ic">🎯</span> Generator</h2>
+        <span class="sub">Wahrscheinlichkeitsbasiert</span>
+      </div>
+
+      <div class="hero-grid">
+        <div class="hero-date">
+          <div class="cal">
+            <div class="d" id="calDay">–</div>
+            <div class="m" id="calMon">–</div>
+          </div>
+          <div class="info">
+            <div class="lbl">Aktueller Ziehungstag</div>
+            <div class="val" id="curDrawDate">–</div>
+            <div class="next" id="nextDrawDate">Nächste Ziehung: –</div>
+          </div>
+        </div>
+
+        <div class="hero-fields">
+          <div class="field">
+            <label>Ziehungstage</label>
+            <input type="number" id="genDays" value="1" min="1" step="1">
+          </div>
+          <div class="field">
+            <label>Tippfelder / Tag</label>
+            <input type="number" id="genTickets" value="1" min="1" step="1">
+          </div>
+        </div>
+
+        <div class="hero-action">
+          <div class="preview-bar">
+            <span class="k">Vorschau</span>
+            <span><span class="v" id="prevTotal">1</span> Tippfelder · <span class="v" id="prevCost">1,20 €</span></span>
+          </div>
+          <button class="btn-primary" id="generateBtn">
+            🎲 Generieren
+          </button>
+        </div>
+      </div>
+
+      <div class="sim-status" id="simStatus">
+        <div class="spinner"></div>
+        <span id="simStatusText">Generiere …</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2><span class="ic">💰</span> Bilanz</h2>
+        <span class="sub">Kumuliert</span>
+      </div>
+      <div class="stats-grid">
+        <div class="stat"><div class="k">Einsatz</div><div class="v" id="totalCost">0,00 €</div></div>
+        <div class="stat"><div class="k">Gewinn</div><div class="v green" id="totalWin">0,00 €</div></div>
+        <div class="stat"><div class="k">Netto</div><div class="v" id="netResult">0,00 €</div></div>
+        <div class="stat"><div class="k">Tippfelder</div><div class="v small" id="totalDraws">0</div></div>
+        <div class="stat"><div class="k">Gewinne</div><div class="v small green" id="totalWins">0</div></div>
+        <div class="stat"><div class="k">Trefferquote</div><div class="v small gold" id="hitRate">–</div></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2><span class="ic">🏆</span> Gewinnklassen</h2>
+        <span class="sub">Theorie vs. Praxis</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Klasse</th>
+              <th>Richtige</th>
+              <th>Theorie</th>
+              <th>Ø Gewinn</th>
+              <th>Treffer</th>
+              <th>Häufigkeit</th>
+              <th>Summe</th>
+            </tr>
+          </thead>
+          <tbody id="classTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2><span class="ic">🔔</span> Benachrichtigungen</h2>
+        <span class="sub">Abbruch bei Treffer</span>
+      </div>
+      <p class="hint" style="margin-top:0;margin-bottom:.25rem">
+        Wähle Gewinnklassen. Trifft der Generator eine davon, bricht er sofort ab und zeigt einen Hinweis.
+      </p>
+      <div class="notif-grid" id="notifGrid"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2><span class="ic">📜</span> Chronik</h2>
+        <span class="sub" id="historyCount">0 Einträge</span>
+      </div>
+      <div class="history-search">
+        <input type="text" id="historySearch" placeholder="🔍 Nach Datum, Nummer oder Klasse filtern …">
+      </div>
+      <div class="history-scroll" id="historyScroll">
+        <div class="empty-state">Noch keine Ziehungen durchgeführt.</div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+/* ============================================================
+   KONFIGURATION
+   ============================================================ */
+const TICKET_PRICE = 1.20;
+const HISTORY_CAP = 1000000;     // Ringpuffer: max. 1 Mio. Einträge (~30 MB)
+const HISTORY_DISPLAY = 1000;    // nur die letzten 1.000 werden gerendert
+
+const WIN_CLASSES = [
+  {id:1, name:'Klasse 1', correct:6, super:true,  prize:12585434.40, chance:'1 : 140 Mio.'},
+  {id:2, name:'Klasse 2', correct:6, super:false, prize:1003509.30,  chance:'1 : 15,5 Mio.'},
+  {id:3, name:'Klasse 3', correct:5, super:true,  prize:12135.40,    chance:'1 : 542.000'},
+  {id:4, name:'Klasse 4', correct:5, super:false, prize:4019.20,     chance:'1 : 60.200'},
+  {id:5, name:'Klasse 5', correct:4, super:true,  prize:191.10,      chance:'1 : 10.300'},
+  {id:6, name:'Klasse 6', correct:4, super:false, prize:50.30,       chance:'1 : 1.150'},
+  {id:7, name:'Klasse 7', correct:3, super:true,  prize:21.20,       chance:'1 : 570'},
+  {id:8, name:'Klasse 8', correct:3, super:false, prize:11.10,       chance:'1 : 63'},
+  {id:9, name:'Klasse 9', correct:2, super:true,  prize:6.00,        chance:'1 : 76'}
+];
+
+/* ============================================================
+   WAHRSCHEINLICHKEITS-SAMPLER
+   ============================================================ */
+const CDF_BITS = 20;
+const CDF_SIZE = 1 << CDF_BITS;
+const CDF = new Uint32Array(7);
+
+(function(){
+  function binom(n,k){
+    if(k<0||k>n) return 0;
+    if(k===0||k===n) return 1;
+    let r=1;
+    for(let i=0;i<k;i++) r = r*(n-i)/(i+1);
+    return r;
+  }
+  const total = binom(49,6);
+  let acc=0;
+  for(let k=0;k<=6;k++){
+    acc += binom(6,k)*binom(43,6-k)/total;
+    CDF[k] = Math.min(CDF_SIZE-1, (acc*CDF_SIZE)|0);
+  }
+  CDF[6] = CDF_SIZE-1;
+})();
+
+const CLASS_LOOKUP = new Int8Array(14).fill(-1);
+for(const wc of WIN_CLASSES){
+  CLASS_LOOKUP[wc.correct*2 + (wc.super?1:0)] = wc.id;
+}
+const PRIZE_BY_CLASS = new Float64Array(10);
+for(const wc of WIN_CLASSES) PRIZE_BY_CLASS[wc.id] = wc.prize;
+
+/* ============================================================
+   HISTORY (Structure of Arrays, kein Limit außer Speicher)
+   ============================================================
+   Für 100 Mio. Läufe würden Objekte zu viel RAM brauchen.
+   Deshalb: typisierte Arrays die bei Bedarf verdoppelt werden.
+   Die letzten HISTORY_CAP Einträge bleiben erhalten.
+   ============================================================ */
+const historyData = {
+  idx:       new Int32Array(HISTORY_CAP),
+  dayIdx:    new Int32Array(HISTORY_CAP),
+  date:      new Float64Array(HISTORY_CAP),   // Unix-Timestamp
+  correct:   new Uint8Array(HISTORY_CAP),
+  superHit:  new Uint8Array(HISTORY_CAP),
+  classId:   new Uint8Array(HISTORY_CAP),
+  length: 0,
+  head: 0,     // Ringpuffer-Start
+  totalWritten: 0,  // gesamte geschriebene Anzahl (für globale #)
+};
+
+function historyPush(dateMs, dayIdx, correct, superHit, classId){
+  const d = historyData;
+  const pos = d.head;
+  d.idx[pos]       = d.totalWritten + 1;
+  d.dayIdx[pos]    = dayIdx;
+  d.date[pos]      = dateMs;
+  d.correct[pos]   = correct;
+  d.superHit[pos]  = superHit ? 1 : 0;
+  d.classId[pos]   = classId > 0 ? classId : 0;
+
+  d.head = (d.head + 1) % HISTORY_CAP;
+  if(d.length < HISTORY_CAP) d.length++;
+  d.totalWritten++;
+}
+
+// Iteration: liefert die letzten N Einträge (neueste zuerst)
+function historyGetRecent(n){
+  const d = historyData;
+  const out = [];
+  const cnt = Math.min(n, d.length);
+  for(let i=0;i<cnt;i++){
+    // Ringpuffer: neueste = head-1-i
+    let pos = d.head - 1 - i;
+    if(pos < 0) pos += HISTORY_CAP;
+    out.push({
+      idx:       d.idx[pos],
+      dayIdx:    d.dayIdx[pos],
+      date:      new Date(d.date[pos]),
+      correct:   d.correct[pos],
+      superHit:  d.superHit[pos] === 1,
+      classId:   d.classId[pos],
+      wc:        d.classId[pos] > 0 ? WIN_CLASSES[d.classId[pos]-1] : null,
+    });
+  }
+  return out;
+}
+
+// Filter über alle Einträge (für Suche)
+function historyFilterAll(query){
+  const d = historyData;
+  const out = [];
+  const q = query.trim().toLowerCase();
+  if(!q) return historyGetRecent(HISTORY_DISPLAY);
+
+  // Neueste zuerst durchlaufen
+  const cnt = d.length;
+  for(let i=0;i<cnt;i++){
+    let pos = d.head - 1 - i;
+    if(pos < 0) pos += HISTORY_CAP;
+    const classId = d.classId[pos];
+    const wc = classId > 0 ? WIN_CLASSES[classId-1] : null;
+    const dateObj = new Date(d.date[pos]);
+    const dateStr = formatDateShort(dateObj).toLowerCase();
+    const isoStr = formatDateISO(dateObj);
+    const classStr = wc ? wc.name.toLowerCase() : '';
+    const rStr = String(d.correct[pos]);
+    const idxStr = String(d.idx[pos]);
+    const dayIdxStr = String(d.dayIdx[pos]);
+
+    if(dateStr.includes(q)||isoStr.includes(q)||classStr.includes(q)
+       ||rStr===q||idxStr.includes(q)||dayIdxStr===q){
+      out.push({
+        idx: d.idx[pos],
+        dayIdx: d.dayIdx[pos],
+        date: dateObj,
+        correct: d.correct[pos],
+        superHit: d.superHit[pos]===1,
+        classId,
+        wc,
+      });
+      if(out.length >= HISTORY_DISPLAY) break;
+    }
+  }
+  return out;
+}
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const state = {
+  currentDrawDate: null,
+  totalCost: 0,
+  totalWin: 0,
+  totalDraws: 0,
+  totalWins: 0,
+  classCounts: new Float64Array(10),
+  classWinSums: new Float64Array(10),
+  notifMask: new Uint8Array(10),
+  abortedSim: false,
+};
+
+/* ============================================================
+   DATE HELPERS
+   ============================================================ */
+function isDrawDay(d){const day=d.getDay();return day===3||day===6;}
+function getNextDrawDate(fromDate){
+  const d=new Date(fromDate);d.setHours(0,0,0,0);
+  while(!isDrawDay(d)) d.setDate(d.getDate()+1);
+  return d;
+}
+function formatDateLong(date){
+  if(!date) return '–';
+  return new Date(date).toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
+}
+function formatDateShort(date){
+  if(!date) return '–';
+  return new Date(date).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+// Kompakt mit Wochentag: "Mi., 08.10.2026"
+function formatDateWeekday(date){
+  if(!date) return '–';
+  return new Date(date).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
+}
+function formatDateISO(date){
+  if(!date) return '';
+  const d = new Date(date);
+  const p = n => String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
+function formatCurrency(v){
+  return v.toLocaleString('de-DE',{style:'currency',currency:'EUR'});
+}
+function formatNumber(v,d=0){
+  return v.toLocaleString('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d});
+}
+
+/* ============================================================
+   UI-UPDATE
+   ============================================================ */
+let _uiRafPending = false;
+let _historyRafPending = false;
+
+function scheduleUI(){
+  if(_uiRafPending) return;
+  _uiRafPending = true;
+  requestAnimationFrame(()=>{ _uiRafPending=false; updateUI(); });
+}
+function scheduleHistory(){
+  if(_historyRafPending) return;
+  _historyRafPending = true;
+  requestAnimationFrame(()=>{ _historyRafPending=false; renderHistory(); });
+}
+
+function updateUI(){
+  document.getElementById('sysToday').textContent=formatDateWeekday(new Date());
+
+  const cd=state.currentDrawDate;
+  document.getElementById('calDay').textContent=String(cd.getDate()).padStart(2,'0');
+  document.getElementById('calMon').textContent=cd.toLocaleDateString('de-DE',{month:'short'}).replace('.','');
+  document.getElementById('curDrawDate').textContent=formatDateLong(cd);
+  const next=new Date(cd); next.setDate(next.getDate()+1);
+  document.getElementById('nextDrawDate').textContent='Nächste Ziehung: '+formatDateWeekday(getNextDrawDate(next));
+
+  document.getElementById('totalCost').textContent=formatCurrency(state.totalCost);
+  document.getElementById('totalWin').textContent=formatCurrency(state.totalWin);
+  const net=state.totalWin-state.totalCost;
+  const netEl=document.getElementById('netResult');
+  netEl.textContent=formatCurrency(net);
+  netEl.className='v '+(net>=0?'green':'red');
+
+  document.getElementById('totalDraws').textContent=formatNumber(state.totalDraws);
+  document.getElementById('totalWins').textContent=formatNumber(state.totalWins);
+
+  const hrEl=document.getElementById('hitRate');
+  if(state.totalDraws>0){
+    hrEl.textContent=(state.totalWins/state.totalDraws*100).toFixed(3)+' %';
+  } else hrEl.textContent='–';
+
+  renderClassTable();
+  scheduleHistory();
+  updatePreview();
+}
+
+function renderClassTable(){
+  const tbody=document.getElementById('classTableBody');
+  const frag=document.createDocumentFragment();
+  for(const wc of WIN_CLASSES){
+    const c=state.classCounts[wc.id];
+    const s=state.classWinSums[wc.id];
+    let freq;
+    if(c===0){
+      freq='<span style="color:var(--text-3);font-style:italic">–</span>';
+    } else {
+      freq='1 : '+formatNumber(Math.round(state.totalDraws/c));
+    }
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td class="kl kl-${wc.id}">${wc.name}</td>
+      <td>${wc.correct}R ${wc.super?'+ SZ':'ohne SZ'}</td>
+      <td class="num-mono" style="font-size:.72rem;color:var(--text-3)">${wc.chance}</td>
+      <td class="num-mono">${formatCurrency(wc.prize)}</td>
+      <td><span class="badge ${c>0?'win':'none'}">${formatNumber(c)}</span></td>
+      <td class="num-mono" style="font-size:.74rem">${freq}</td>
+      <td class="num-mono">${formatCurrency(s)}</td>
+    `;
+    frag.appendChild(tr);
+  }
+  const totalNone=state.totalDraws-state.totalWins;
+  const trNone=document.createElement('tr');
+  trNone.innerHTML=`
+    <td class="kl" style="color:var(--text-3)">Keine Klasse</td>
+    <td>0–2R ohne SZ</td>
+    <td class="num-mono" style="font-size:.72rem;color:var(--text-3)">–</td>
+    <td class="num-mono">0,00 €</td>
+    <td><span class="badge none">${formatNumber(Math.max(0,totalNone))}</span></td>
+    <td class="num-mono" style="font-size:.74rem;color:var(--text-3)">–</td>
+    <td class="num-mono">0,00 €</td>
+  `;
+  frag.appendChild(trNone);
+  tbody.replaceChildren(frag);
+}
+
+function updatePreview(){
+  const days = Math.max(1, Math.floor(+document.getElementById('genDays').value)||1);
+  const tickets = Math.max(1, Math.floor(+document.getElementById('genTickets').value)||1);
+  const total = days*tickets;
+  document.getElementById('prevTotal').textContent = formatNumber(total);
+  document.getElementById('prevCost').textContent = formatCurrency(total*TICKET_PRICE);
+}
+
+/* ============================================================
+   HISTORY RENDERING
+   ============================================================ */
+function renderHistory(){
+  const scroll=document.getElementById('historyScroll');
+  const q=document.getElementById('historySearch').value.trim();
+  const countEl=document.getElementById('historyCount');
+
+  const total = historyData.totalWritten;
+  countEl.textContent=formatNumber(total)+' Einträge';
+
+  if(total===0){
+    scroll.innerHTML='<div class="empty-state">Noch keine Ziehungen durchgeführt.</div>';
+    return;
+  }
+
+  let entries;
+  if(q){
+    entries = historyFilterAll(q);
+  } else {
+    entries = historyGetRecent(HISTORY_DISPLAY);
+  }
+
+  if(entries.length===0){
+    scroll.innerHTML='<div class="empty-state">Keine Einträge passend zum Filter.</div>';
+    return;
+  }
+
+  const rows=[];
+  if(!q && total > HISTORY_DISPLAY){
+    rows.push(`<div class="history-info">Zeige die letzten ${formatNumber(HISTORY_DISPLAY)} von ${formatNumber(total)} Einträgen</div>`);
+  } else if(q){
+    rows.push(`<div class="history-info">${formatNumber(entries.length)} Treffer (max. ${formatNumber(HISTORY_DISPLAY)})</div>`);
+  }
+
+  for(const h of entries){
+    const dateStr = formatDateWeekday(h.date);
+    const clsLabel = h.wc
+      ? `<span class="badge win">${h.wc.name}</span>`
+      : `<span class="badge none">Kein Gewinn</span>`;
+    const szTag = h.superHit
+      ? `<span class="sz-tag">+ SZ</span>`
+      : `<span class="sz-tag miss">SZ ✗</span>`;
+    const prize = h.wc ? h.wc.prize : 0;
+    const net = prize - TICKET_PRICE;
+
+    rows.push(`
+      <div class="hist-row">
+        <div class="date-col">
+          <span class="d">${dateStr}</span>
+          <div class="ids">
+            <span class="idx">#${formatNumber(h.idx)}</span>
+            <span class="day-idx">Feld ${formatNumber(h.dayIdx)}</span>
+          </div>
+        </div>
+        <div class="r">
+          <span class="r-num">${h.correct} Richtige</span>
+          ${szTag}
+        </div>
+        <div>${clsLabel}</div>
+        <div class="win-cell ${net>=0?'pos':'neg'}">
+          ${formatCurrency(net)}
+          <div style="font-size:.62rem;color:var(--text-3);font-weight:500;margin-top:.15rem">
+            +${formatCurrency(prize)} / -${formatCurrency(TICKET_PRICE)}
+          </div>
+        </div>
+      </div>
+    `);
+  }
+  scroll.innerHTML=rows.join('');
+}
+
+/* ============================================================
+   GENERATOR
+   ============================================================ */
+let _genRunning=false;
+
+function generate(days, ticketsPerDay){
+  if(_genRunning) return;
+  if(days<1||ticketsPerDay<1) return;
+  const totalTickets = days*ticketsPerDay;
+  if(!Number.isFinite(totalTickets)||totalTickets>Number.MAX_SAFE_INTEGER){
+    alert('Zu viele Tippfelder.');
+    return;
+  }
+
+  _genRunning=true;
+  state.abortedSim=false;
+
+  const status=document.getElementById('simStatus');
+  const statusText=document.getElementById('simStatusText');
+  const genBtn=document.getElementById('generateBtn');
+  status.classList.add('show');
+  genBtn.disabled=true;
+
+  const CHUNK = totalTickets > 1e7 ? 2000000 :
+                totalTickets > 1e6 ? 1000000 :
+                totalTickets > 1e5 ?  250000 : 100000;
+
+  let remaining=totalTickets;
+  let done=0;
+  let aborted=false;
+  let currentDate=new Date(state.currentDrawDate);
+  let currentDateMs=currentDate.getTime();
+  let ticketInDay=0;
+  const notifMask = state.notifMask;
+
+  // lokale Refs
+  const counts = state.classCounts;
+  const sums   = state.classWinSums;
+  const prizes = PRIZE_BY_CLASS;
+  const lookup = CLASS_LOOKUP;
+  const CDFa = CDF;
+  const CDF_0=CDFa[0],CDF_1=CDFa[1],CDF_2=CDFa[2],CDF_3=CDFa[3],CDF_4=CDFa[4],CDF_5=CDFa[5];
+  const CDF_SZ = CDF_SIZE;
+  const TICKET = TICKET_PRICE;
+  let totalCost = state.totalCost;
+  let totalWin = state.totalWin;
+  let totalDraws = state.totalDraws;
+  let totalWins = state.totalWins;
+
+  function runChunk(){
+    if(state.abortedSim) aborted=true;
+
+    const chunk=Math.min(CHUNK, remaining);
+    let hitNotif=0, hitCorrect=0, hitSuper=0;
+
+    for(let i=0;i<chunk;i++){
+      const r = (Math.random()*CDF_SZ)|0;
+      let k;
+      if(r < CDF_0) k=0;
+      else if(r < CDF_1) k=1;
+      else if(r < CDF_2) k=2;
+      else if(r < CDF_3) k=3;
+      else if(r < CDF_4) k=4;
+      else if(r < CDF_5) k=5;
+      else k=6;
+
+      const sz = Math.random() < 0.1;
+      const classId = lookup[(k<<1) | (sz?1:0)];
+      const prize = classId > 0 ? prizes[classId] : 0;
+
+      if(classId > 0){
+        counts[classId]++;
+        sums[classId]+=prize;
+        totalWins++;
+      }
+      totalCost += TICKET;
+      totalWin  += prize;
+      totalDraws++;
+
+      ticketInDay++;
+
+      // History-Eintrag
+      historyPush(currentDateMs, ticketInDay, k, sz, classId);
+
+      if(ticketInDay>=ticketsPerDay){
+        ticketInDay=0;
+        const next=new Date(currentDate);
+        next.setDate(next.getDate()+1);
+        currentDate=getNextDrawDate(next);
+        currentDateMs=currentDate.getTime();
+      }
+
+      if(classId>0 && notifMask[classId]){
+        hitNotif=classId;
+        hitCorrect=k;
+        hitSuper=sz;
+        aborted=true;
+        break;
+      }
+    }
+
+    if(ticketInDay>0) state.currentDrawDate=new Date(currentDateMs);
+
+    done+=chunk;
+    remaining-=chunk;
+
+    if(remaining>0 && !aborted){
+      statusText.textContent=`Generiere … ${formatNumber(Math.min(done,totalTickets))} / ${formatNumber(totalTickets)} Tippfelder`;
+      requestAnimationFrame(runChunk);
+    } else {
+      state.totalCost=totalCost;
+      state.totalWin=totalWin;
+      state.totalDraws=totalDraws;
+      state.totalWins=totalWins;
+      if(ticketInDay>0) state.currentDrawDate=new Date(currentDateMs);
+
+      updateUI();
+      statusText.textContent = aborted
+        ? `⏹ Abgebrochen nach ${formatNumber(done)} Tippfeldern`
+        : `✓ ${formatNumber(totalTickets)} Tippfelder abgeschlossen`;
+      setTimeout(()=>status.classList.remove('show'),2000);
+      _genRunning=false;
+      genBtn.disabled=false;
+
+      if(aborted && hitNotif){
+        showToast({
+          date: state.currentDrawDate,
+          correct: hitCorrect,
+          superCorrect: hitSuper,
+          wc: WIN_CLASSES[hitNotif-1],
+          prize: prizes[hitNotif]
+        });
+      }
+      state.abortedSim=false;
+    }
+  }
+  runChunk();
+}
+
+/* ============================================================
+   NOTIFICATIONS
+   ============================================================ */
+function initNotifUI(){
+  const grid=document.getElementById('notifGrid');
+  grid.innerHTML='';
+  for(const wc of WIN_CLASSES){
+    const item=document.createElement('label');
+    item.className='notif-item kl-'+wc.id;
+    item.innerHTML=`
+      <input type="checkbox" data-class="${wc.id}">
+      <span class="kl-label">K${wc.id}</span>
+      <span class="desc">${wc.correct}R${wc.super?'+SZ':''}</span>
+    `;
+    grid.appendChild(item);
+  }
+  grid.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change',e=>{
+      const id=parseInt(e.target.dataset.class);
+      if(e.target.checked){ state.notifMask[id]=1; }
+      else { state.notifMask[id]=0; }
+    });
+  });
+}
+
+/* ============================================================
+   TOASTS
+   ============================================================ */
+function showToast(entry){
+  const container=document.getElementById('toastContainer');
+  const toast=document.createElement('div');
+  const wc=entry.wc;
+  const isJackpot=wc.id===1;
+  toast.className='toast '+(isJackpot?'jackpot':'win');
+  toast.innerHTML=`
+    <div class="t-title">${isJackpot?'🏆 JACKPOT!':'🎉 '+wc.name+' getroffen!'}</div>
+    <div class="t-body">
+      <strong>${entry.correct} Richtige ${entry.superCorrect?'+ Superzahl':''}</strong><br>
+      Datum: ${formatDateWeekday(entry.date)}<br>
+      Gewinn: <strong>${formatCurrency(entry.prize)}</strong>
+    </div>
+  `;
+  container.appendChild(toast);
+  setTimeout(()=>{
+    toast.style.opacity='0';
+    toast.style.transition='opacity .4s';
+    setTimeout(()=>toast.remove(),400);
+  },6000);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function init(){
+  state.currentDrawDate=getNextDrawDate(new Date());
+  initNotifUI();
+  updateUI();
+
+  document.getElementById('generateBtn').addEventListener('click',()=>{
+    const days=Math.max(1, Math.floor(+document.getElementById('genDays').value)||1);
+    const tickets=Math.max(1, Math.floor(+document.getElementById('genTickets').value)||1);
+    generate(days, tickets);
+  });
+
+  document.getElementById('genDays').addEventListener('input',updatePreview);
+  document.getElementById('genTickets').addEventListener('input',updatePreview);
+
+  document.getElementById('historySearch').addEventListener('input',scheduleHistory);
+
+  setInterval(()=>{
+    document.getElementById('sysToday').textContent=formatDateWeekday(new Date());
+  },60000);
+}
+
+init();
+</script>
+</body>
+</html>
